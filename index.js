@@ -6,16 +6,6 @@ const axiosInstance = axios.create({
   httpsAgent: new https.Agent({ rejectUnauthorized: false })
 });
 
-async function getAuthToken(serverUrl, appKey, appSecret) {
-  core.debug('Attempting to get auth token...');
-  const response = await axiosInstance.post(`${serverUrl}/api/v1/login`, {
-    appKey: appKey,
-    appSecret: appSecret
-  });
-  core.debug('Successfully obtained auth token');
-  return response.data.tokenId;
-}
-
 async function getVaultId(serverUrl, token, vaultName) {
   core.debug(`Attempting to get vault ID for vault: ${vaultName}`);
   const response = await axiosInstance.get(`${serverUrl}/api/v1/vault`, {
@@ -98,8 +88,7 @@ async function run() {
     core.debug('Starting action execution');
     
     const serverUrl = core.getInput('server_url');
-    const appKey = core.getInput('app_key');
-    const appSecret = core.getInput('app_secret');
+    const token = core.getInput('token');
     const vaultName = core.getInput('vault_name');
     const entryName = core.getInput('entry_name');
     const outputVariable = core.getInput('output_variable');
@@ -108,10 +97,6 @@ async function run() {
     core.debug(`Vault Name: ${vaultName}`);
     core.debug(`Entry Name: ${entryName}`);
 
-    const token = await makeRequest('Authentication', () => 
-      getAuthToken(serverUrl, appKey, appSecret)
-    );
-    
     const vaultId = await makeRequest('Get Vault ID', () => 
       getVaultId(serverUrl, token, vaultName)
     );
