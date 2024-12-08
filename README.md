@@ -1,53 +1,85 @@
 # Devolutions Server Get SecretEntry Action
 
-This GitHub Action authenticates with a Devolutions Server instance and retrieves a secret entry from a specified vault. The retrieved secret can be stored in an environment variable for use in subsequent workflow steps.
+This GitHub Action allows you to authenticate and retrieve a secret entry from Devolutions Server.
+
+## Prerequisites
+
+Before using this action, you must first obtain a token using the `dvls-login` action:
+
+```yaml
+steps:
+  - name: Login to Devolutions Server
+    uses: devolutions/dvls-login@v1
+    with:
+      server_url: 'https://your-server.devolutions.app'
+      app_key: ${{ secrets.DVLS_APP_KEY }}
+      app_secret: ${{ secrets.DVLS_APP_SECRET }}
+      # The token will be stored in DVLS_TOKEN by default
+```
 
 ## Inputs
 
-### `server_url`
+| Input | Description | Required | Default |
+|-------|-------------|----------|---------|
+| `server_url` | URL of the Devolutions Server | Yes | - |
+| `token` | Token for authentication | Yes | - |
+| `vault_name` | Name of the vault containing the secret entry | Yes | - |
+| `entry_name` | Name of the secret entry to retrieve | Yes | - |
+| `output_variable` | Name of the environment variable to store the retrieved secret | No | `DVLS_ENTRY_SECRET` |
 
-**Required** The URL of your Devolutions Server instance.
-
-### `app_key`
-
-**Required** The application key used for authentication with Devolutions Server.
-
-### `app_secret`
-
-**Required** The application secret used for authentication with Devolutions Server.
-
-### `vault_name`
-
-**Required** The name of the vault containing the secret entry you want to retrieve.
-
-### `entry_name`
-
-**Required** The name of the secret entry to retrieve from the vault.
-
-### `output_variable`
-
-**Optional** The name of the environment variable where the retrieved secret will be stored. Default: `"DVLS_ENTRY_SECRET"`.
-
-## Example usage
+## Usage
 
 ```yaml
-uses: adbertram/devolutions-server-get-entry@v1
-with:
-server_url: 'https://your-server.devolutions.app'
-app_key: ${{ secrets.DVLS_APP_KEY }}
-app_secret: ${{ secrets.DVLS_APP_SECRET }}
-vault_name: 'MyVault'
-entry_name: 'MySecret'
-output_variable: 'MY_SECRET_VALUE'
+steps:
+  - name: Get Secret from Devolutions Server
+    uses: devolutions/dvls-get-secret-entry@v1
+    with:
+      server_url: 'https://your-server.devolutions.app'
+      token: ${{ secrets.DVLS_TOKEN }}
+      vault_name: 'MyVault'
+      entry_name: 'MySecret'
+      output_variable: 'MY_SECRET' # Optional, defaults to DVLS_ENTRY_SECRET
+```
+
+## Example Workflow
+
+Here's a complete example of how to use this action in your workflow:
+
+```yaml
+name: Example Workflow
+on: [push]
+
+jobs:
+  example:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to Devolutions Server
+        uses: devolutions/dvls-login@v1
+        with:
+          server_url: 'https://your-server.devolutions.app'
+          app_key: ${{ secrets.DVLS_APP_KEY }}
+          app_secret: ${{ secrets.DVLS_APP_SECRET }}
+
+      - name: Get Secret
+        uses: devolutions/dvls-get-secret-entry@v1
+        with:
+          server_url: 'https://your-server.devolutions.app'
+          token: ${{ env.DVLS_TOKEN }}  # Uses the token from the login step
+          vault_name: 'MyVault'
+          entry_name: 'MySecret'
+
+      - name: Use Secret
+        run: |
+          echo "Secret is stored in ${{ env.DVLS_ENTRY_SECRET }}"
+          # Your code that uses the secret
 ```
 
 ## Security Notes
 
-- Store your `app_key` and `app_secret` as GitHub Secrets
-- The retrieved secret will be stored in an environment variable accessible to subsequent workflow steps
-- Be cautious when logging or displaying the environment variable contents to prevent secret exposure
+- Store your Devolutions Server token as a GitHub Secret
+- Never print secrets in logs or expose them in any way
+- The secret will be stored in an environment variable that is accessible to subsequent steps in your workflow
 
-## Prerequisites
+## License
 
-- A Devolutions Server instance
-- A Devolutions Server application identity with appropriate permissions to access the vault
+This GitHub Action is available under the [MIT License](LICENSE).
