@@ -32,7 +32,7 @@ steps:
 ```yaml
 steps:
   - name: Get Secret from Devolutions Server
-    uses: devolutions/dvls-get-secret-entry@v1
+    uses: devolutions-community/dvls-get-secret-entry@main
     with:
       server_url: 'https://your-server.devolutions.app'
       token: ${{ secrets.DVLS_TOKEN }}
